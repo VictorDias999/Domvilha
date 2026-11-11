@@ -273,6 +273,7 @@ function navHTML(){
 function productCardHTML(p){
   return `
     <div class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 flex flex-col ${p.available?'':'opacity-60'}">
+      ${p.photo?`<img src="${esc(p.photo)}" alt="${esc(p.name)}" loading="lazy" decoding="async" class="w-full object-cover rounded-xl mb-3" style="aspect-ratio:4/3" onerror="this.style.display='none'">`:''}
       ${!p.available?'<span class="self-start mb-1 text-[10px] font-bold px-2 py-1 rounded-full" style="background:var(--text);color:var(--surface)">ESGOTADO</span>':''}
       ${p.badge?`<span class="eyebrow mb-1" style="color:var(--marigold)">${esc(p.badge)}</span>`:''}
       <h3 class="fd font-bold text-base">${esc(p.name)}</h3>
