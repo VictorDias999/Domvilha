@@ -42,16 +42,17 @@
   .car-pause{width:28px;height:28px;margin-left:.35rem;border-radius:9999px;border:1px solid rgba(243,234,212,.35);background:rgba(21,17,13,.55);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer}
   @media (prefers-reduced-motion:reduce){.car-dot{transition:none}}
   /* ===== Cardápio em cards horizontais (estilo delivery) ===== */
-  .pgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:.75rem}
-  @media (min-width:768px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}}
-  .pcard{display:flex;align-items:stretch;gap:.875rem;min-height:132px;padding:.875rem;border:1px solid var(--border);border-radius:1rem;background:var(--surface);cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+  .pgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:.625rem}
+  @media (min-width:768px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.875rem}}
+  .pcard{display:flex;align-items:stretch;gap:.875rem;min-height:152px;padding:.75rem .75rem .75rem 1rem;border:1px solid var(--border);border-radius:1rem;background:var(--surface);cursor:pointer;transition:transform .15s ease,border-color .15s ease}
   .pcard:hover{border-color:var(--clay)}.pcard:active{transform:scale(.99)}
   .pcard.off{opacity:.6;cursor:default}
   .pbody{flex:1;min-width:0;display:flex;flex-direction:column}
   .pdesc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
-  .pphoto{flex:0 0 auto;width:112px;height:112px;align-self:center}
-  .pphoto img{display:block;width:100%;height:100%;object-fit:cover;border-radius:.75rem}
-  @media (max-width:380px){.pphoto{width:92px;height:92px}}
+  .pphoto{flex:0 0 auto;width:136px;height:136px;align-self:center}
+  @media (min-width:768px){.pphoto{width:156px;height:156px}.pcard{min-height:172px}}
+  .pphoto img{display:block;width:100%;height:100%;object-fit:cover;border-radius:.875rem}
+  @media (max-width:380px){.pphoto{width:112px;height:112px}}
   .padd{flex:0 0 auto;width:44px;height:44px;border-radius:9999px;border:0;background:var(--avocado);color:var(--bg);font-size:1.5rem;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s ease}
   .padd:active{transform:scale(.92)}.padd:disabled{background:#666;color:#fff;opacity:.5;cursor:default}
   @keyframes bump{50%{transform:scale(1.04)}}
@@ -73,7 +74,7 @@
 <div id="announcementBar" class="hidden text-center text-sm font-semibold px-4 py-2" style="background:var(--chili);color:#fff"></div>
 
 <header class="sticky top-0 z-30 bg-[var(--bg)]/95 backdrop-blur border-b border-[var(--border)]">
-  <div class="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
+  <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
     <div id="brandName" class="fd font-extrabold text-xl leading-none"></div>
     <div class="flex items-center gap-2">
       <button id="adminBtn" onclick="openAdmin()" class="hidden rounded-full px-3 py-2 text-sm font-semibold border border-[var(--border)]">Admin</button>
@@ -86,7 +87,7 @@
   <div id="marqueeBar" class="mono text-[11px] tracking-widest overflow-x-auto whitespace-nowrap px-4 pb-2" style="color:var(--muted)"></div>
 </header>
 
-<section class="max-w-5xl mx-auto px-4 pt-8 pb-4">
+<section class="max-w-7xl mx-auto px-4 pt-8 pb-4">
   <div class="max-w-2xl">
     <div id="heroEyebrow" class="eyebrow mb-3"></div>
     <h1 id="heroTitle" class="fd font-extrabold text-4xl sm:text-5xl leading-[1.1]"></h1>
@@ -102,25 +103,25 @@
   </div>
 </section>
 
-<section class="max-w-5xl mx-auto px-4 pt-6">
+<section class="max-w-7xl mx-auto px-4 pt-6">
   <div id="menuEyebrow" class="eyebrow mb-2"></div>
   <h2 id="menuTitle" class="fd font-extrabold text-2xl sm:text-3xl mb-2"></h2>
 </section>
 
-<section class="max-w-5xl mx-auto px-4 pt-4 pb-3">
+<section class="max-w-7xl mx-auto px-3 sm:px-4 pt-4 pb-3">
   <label for="searchBox" class="sr-only">Buscar no cardápio</label>
   <input id="searchBox" type="search" autocomplete="off" oninput="onSearch(this.value)" placeholder="Buscar produto no cardápio" class="w-full rounded-full border px-5 py-3 text-sm">
 </section>
 
 <nav id="cardapio" class="sticky top-[88px] sm:top-[92px] z-20 bg-[var(--bg)]/95 backdrop-blur border-b border-[var(--border)]">
-  <div id="catNav" class="max-w-5xl mx-auto flex gap-2 px-4 py-3 overflow-x-auto"></div>
+  <div id="catNav" class="max-w-7xl mx-auto flex gap-2 px-3 sm:px-4 py-3 overflow-x-auto"></div>
 </nav>
 
-<main class="max-w-5xl mx-auto px-4 pb-24">
+<main class="max-w-7xl mx-auto px-3 sm:px-4 pb-24">
   <div id="productGrid"></div>
 </main>
 
-<section class="max-w-5xl mx-auto px-4 py-10">
+<section class="max-w-7xl mx-auto px-4 py-10">
   <div id="featuresEyebrow" class="eyebrow mb-2"></div>
   <h2 id="featuresTitle" class="fd font-extrabold text-2xl sm:text-3xl mb-6"></h2>
   <div id="carousel" class="car" role="region" aria-roledescription="carrossel" aria-label="Fotos do restaurante" hidden></div>
@@ -134,7 +135,7 @@
   <a id="ctaWhatsapp" href="#" target="_blank" class="inline-block mt-6 rounded-full px-6 py-3 font-semibold" style="background:var(--chili);color:#fff"><span id="ctaWhatsappLabel2"></span></a>
 </section>
 
-<footer class="max-w-5xl mx-auto px-4 py-10 text-center text-xs" style="color:var(--muted)">
+<footer class="max-w-7xl mx-auto px-4 py-10 text-center text-xs" style="color:var(--muted)">
   <div id="footerBrand" class="fd font-bold text-base" style="color:var(--text)"></div>
   <div id="footerTagline" class="mt-1"></div>
   <div id="footerInfo" class="mt-2"></div>
