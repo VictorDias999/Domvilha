@@ -41,6 +41,23 @@
   .car-dot[aria-current="true"]{width:22px;background:var(--marigold)}
   .car-pause{width:28px;height:28px;margin-left:.35rem;border-radius:9999px;border:1px solid rgba(243,234,212,.35);background:rgba(21,17,13,.55);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer}
   @media (prefers-reduced-motion:reduce){.car-dot{transition:none}}
+  /* ===== Cardápio em cards horizontais (estilo delivery) ===== */
+  .pgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:.75rem}
+  @media (min-width:768px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}}
+  .pcard{display:flex;align-items:stretch;gap:.875rem;min-height:132px;padding:.875rem;border:1px solid var(--border);border-radius:1rem;background:var(--surface);cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+  .pcard:hover{border-color:var(--clay)}.pcard:active{transform:scale(.99)}
+  .pcard.off{opacity:.6;cursor:default}
+  .pbody{flex:1;min-width:0;display:flex;flex-direction:column}
+  .pdesc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+  .pphoto{flex:0 0 auto;width:112px;height:112px;align-self:center}
+  .pphoto img{display:block;width:100%;height:100%;object-fit:cover;border-radius:.75rem}
+  @media (max-width:380px){.pphoto{width:92px;height:92px}}
+  .padd{flex:0 0 auto;width:44px;height:44px;border-radius:9999px;border:0;background:var(--avocado);color:var(--bg);font-size:1.5rem;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s ease}
+  .padd:active{transform:scale(.92)}.padd:disabled{background:#666;color:#fff;opacity:.5;cursor:default}
+  @keyframes bump{50%{transform:scale(1.04)}}
+  #floatBar.bump{animation:bump .3s ease}
+  @media (min-width:640px){#floatBar{left:50%;right:auto;transform:translateX(-50%);width:min(560px,calc(100% - 2rem))}}
+  @media (prefers-reduced-motion:reduce){.pcard,.padd{transition:none}#floatBar.bump{animation:none}}
   .adtab{font-family:'Space Mono',monospace;font-size:11px}
   /* o site só aparece depois de carregar o cardápio salvo (evita piscar preços antigos) */
   #app{opacity:0;transition:opacity .25s ease}
@@ -90,11 +107,16 @@
   <h2 id="menuTitle" class="fd font-extrabold text-2xl sm:text-3xl mb-2"></h2>
 </section>
 
+<section class="max-w-5xl mx-auto px-4 pt-4 pb-3">
+  <label for="searchBox" class="sr-only">Buscar no cardápio</label>
+  <input id="searchBox" type="search" autocomplete="off" oninput="onSearch(this.value)" placeholder="Buscar produto no cardápio" class="w-full rounded-full border px-5 py-3 text-sm">
+</section>
+
 <nav id="cardapio" class="sticky top-[88px] sm:top-[92px] z-20 bg-[var(--bg)]/95 backdrop-blur border-b border-[var(--border)]">
   <div id="catNav" class="max-w-5xl mx-auto flex gap-2 px-4 py-3 overflow-x-auto"></div>
 </nav>
 
-<main class="max-w-5xl mx-auto px-4 pb-6">
+<main class="max-w-5xl mx-auto px-4 pb-24">
   <div id="productGrid"></div>
 </main>
 
@@ -119,9 +141,12 @@
   <button onclick="adminEntry()" class="mt-5 underline opacity-60 hover:opacity-100">Área do administrador</button>
 </footer>
 
-<button id="floatBar" onclick="openCart()" class="hidden fixed bottom-4 left-4 right-4 z-30 rounded-full py-3.5 px-5 text-white font-semibold shadow-lg flex items-center justify-between" style="background:var(--chili)">
-  <span id="floatCount">0 itens</span>
-  <span id="floatTotal">R$ 0,00</span>
+<button id="floatBar" onclick="openCart()" aria-label="Ver carrinho" class="hidden fixed bottom-4 left-4 right-4 z-30 rounded-full py-3.5 px-5 text-white font-semibold shadow-lg flex items-center justify-between gap-3" style="background:var(--chili)">
+  <span class="flex items-center gap-2.5 min-w-0">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 7H6"/></svg>
+    <span>Ver carrinho</span><span id="floatCount" class="text-xs opacity-90 whitespace-nowrap">0 itens</span>
+  </span>
+  <span id="floatTotal" class="whitespace-nowrap">R$ 0,00</span>
 </button>
 
 <div id="modalBg" class="modalbg hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-center" onclick="if(event.target===this)closeModal()">
@@ -170,7 +195,7 @@
   </div>
 </div>
 
-<div id="toastEl" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 rounded-full px-5 py-2.5 text-sm font-semibold shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
+<div id="toastEl" class="fixed left-1/2 -translate-x-1/2 bottom-24 z-50 rounded-full px-5 py-2.5 text-sm font-semibold shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
 </div>
 <script id="siteData" type="application/json">{"content":{"brandName":"DomVilha Mexicano","whatsappNumber":"5567984216434","announcement":"","heroEyebrow":"DELIVERY GASTRONÔMICO ARTESANAL","heroTitle":"O sabor do *México* na sua casa.","heroParagraph":"Burritos enrolados em tortilha tradicional artesanal, tostados na chapa, com ingredientes frescos selecionados, entregues quentinhos na sua casa, em Dourados e região. Dois anos consecutivos \"o melhor lanche de Dourados \" festival gastronômico 2022 e 2023 e agora RETORNO COM TODO O SABOR A DOURADOS!","heroBulletsLine1":"✦ Feito na chapa, na hora   ✦ Somente delivery","heroBulletsLine2":"✦ Quarta a Sábado, 18h30 a 22h   ✦ Pix, débito e crédito","ctaWhatsappLabel":"Pedir pelo WhatsApp","ctaMenuLabel":"Ver o cardápio","marqueeText":"QUARTA A SÁBADO ✦ 18H30 ÀS 22H ✦ BURRITOS ARTESANAIS ✦ SALSAS & DIPS ✦ COMBOS ✦ MOLHOS ✦ TACOS","menuEyebrow":"O CARDÁPIO","menuTitle":"","featuresEyebrow":"EXPERIÊNCIA & LOGÍSTICA","featuresTitle":"Da chapa *até a sua mesa.*","features":[{"title":"Somente delivery","desc":"Atendemos Dourados-MS e região, de quarta a sábado, das 18h30 às 22h Ou enquanto tiver os produtos do dia(ARTESANAIS e FRESCOS)"},{"title":"Pagamento fácil","desc":"Aceitamos Pix, cartão de débito e crédito."}],"ctaEyebrow":"BATEU A FOME?","ctaTitle":"Peça agora *pelo WhatsApp.*","ctaParagraph":"Chame, monte seu pedido e receba em casa. Quarta a domingo, das 18h30 às 22h.","ctaButtonLabel":"Chamar no WhatsApp","footerTagline":"Delivery gastronômico artesanal — \"O sabor do México na sua casa.\" Dois anos eleito o MELHOR LANCHE DR DOURADOS- FESTIVAL GASTRONÔMICO 2022 e 2023","footerInfo":"Quarta a Sábado o, 18h30 às 22h · Delivery em Dourados-MS e região · Pix, débito e crédito","carousel":[]},"categories":[{"id":"burritos-especiais","name":"Burritos","color":"var(--chili)","desc":"Tortilha artesanal de trigo, enrolada e tostada na chapa."},{"id":"sobremesa","name":"Sobremesas","color":"var(--agave)","desc":""},{"id":"tacos","name":"Tacos","color":"var(--avocado)","desc":"(Edição limitada: apenas 10 unidades por dia)"},{"id":"nachos","name":"Nachos e combos","color":"var(--clay)","desc":""},{"id":"salsas-extras","name":"Salsas & Extras","color":"var(--marigold)","desc":""},{"id":"bebidas","name":"Bebidas","color":"var(--chili)","desc":""}],"products":[{"id":"b1","cat":"burritos-especiais","name":"Burrito de Costela","desc":"Costela especial do chefe, arroz mexicano, feijão mexicano, creme de queijo, vinagrete, picles e queijo. Finalizado com limão e molho da casa.","price":38.0,"photo":null,"available":true,"badge":"Sugestão do chefe","spec":"370g","addons":[]},{"id":"b2","cat":"burritos-especiais","name":"Burrito Mariachi","desc":"Molho chilli artesanal apimentado, arroz mexicano, feijão mexicano, creme de queijo, vinagrete, picles e queijo. Finalizado com limão e molho da casa.","price":33.0,"photo":null,"available":true,"badge":"Receita da casa","spec":"370g","addons":[]},{"id":"b3","cat":"burritos-especiais","name":"Burrito de Assado ao Chimichurri","desc":"Carne assada ao chimichurri, arroz e feijão mexicanos, creme de queijo, vinagrete, picles e queijo. Finalizado com limão e molho da casa.","price":38.0,"photo":null,"available":false,"badge":"Corte nobre","spec":"370g","addons":[]},{"id":"b4","cat":"burritos-especiais","name":"Burrito Chavo del 8","desc":"Calabresa, bacon crocante, pernil especial, arroz e feijão mexicanos, creme de queijo, vinagrete, picles e queijo. Finalizado com limão e molho da casa.","price":32.0,"photo":null,"available":true,"badge":"Triplo Sabor","spec":"370g","addons":[]},{"id":"b5","cat":"burritos-especiais","name":"BURRITO POLLO FAJITAS","desc":"Frango grelhado em tiras, arroz e feijão mexicanos, creme de queijo, vinagrete, picles e queijo. Finalizado com limão e molho da casa.","price":32.0,"photo":null,"available":true,"badge":"Leve & Suculento","spec":"370g","addons":[]},{"id":"b6","cat":"burritos-especiais","name":"BURRITO VEGETARIANO","desc":"Mix de legumes com proteína de soja, arroz e feijão mexicanos, guacamole artesanal, vinagrete, picles e queijo. Finalizado com limão e molho da casa.","price":30.0,"photo":null,"available":true,"badge":"Plant-Based Fresh","spec":"370g","addons":[]},{"id":"b7","cat":"burritos-especiais","name":"BURRITO DOGMEX","desc":"Salsicha ao molho especial, batata frita crocante, creme de queijo, vinagrete e queijo duplo. Finalizado com maionese, ketchup e molho da casa.","price":30.0,"photo":null,"available":true,"badge":"Street Food Especial","spec":"350g","addons":[]},{"id":"b8","cat":"burritos-especiais","name":"BURRITO DOMVILHA MEX","desc":"Blend nobre de cozimento lento com peito bovino (brisket), costela e cupim desfiado. Acompanha arroz e feijão mexicanos, creme de queijo, vinagrete, picles, queijo, limão e molho da casa.","price":40.0,"photo":null,"available":true,"badge":"Blend Autoral","spec":"370g","addons":[]},{"id":"k1","cat":"burritos-especiais","name":"Burrito Frango Kids","desc":"Tortilha recheada com frango, queijo, picles, arroz e feijão mexicano.","price":22.0,"photo":null,"available":true,"badge":"Kids","spec":"200g · Sem pimenta","addons":[]},{"id":"k2","cat":"burritos-especiais","name":"Burrito carne Kids","desc":"Tortilha recheada com carne assada, queijo, picles, arroz e feijão mexicano.","price":24.0,"photo":null,"available":true,"badge":"Kids","spec":"200g · Sem pimenta","addons":[]},{"id":"d1","cat":"sobremesa","name":"Mini Burrito Churros","desc":"Doce de leite cremoso, tostado na chapa com crostinha de açúcar e canela.","price":12.0,"photo":null,"available":true,"badge":"","spec":"100g","addons":[]},{"id":"t1","cat":"tacos","name":"Taco Domvilha Mex","desc":"peito bovino, costela e cupim desfiado; feijão mexicano, creme de queijo, vinagrete, picles, queijo, limão e molho da casa.","price":26.0,"photo":null,"available":true,"badge":"","spec":"","addons":[]},{"id":"t2","cat":"tacos","name":"Taco Tex-Mex","desc":"Carne moída ao chili tradicional, feijão temperado, cheddar, picles e molho exclusivo do chefe","price":24.0,"photo":null,"available":true,"badge":"","spec":"","addons":[]},{"id":"t3","cat":"tacos","name":"Taco de Chicharrón","desc":"Muçarela derretida, chicharrón crocante(torresmo)sour cream refrescante e cheddar e vinagre","price":25.0,"photo":null,"available":false,"badge":"","spec":"","addons":[]},{"id":"n1","cat":"nachos","name":"COMBO NACHOS 1","desc":"50g de totopos de milho + guacamole fresco + molho chili + salsa picante.","price":35.0,"photo":null,"available":true,"badge":"CLÁSSICO MEXICANO","spec":"50g de totopos","addons":[]},{"id":"n2","cat":"nachos","name":"COMBO NACHOS 2","desc":"50g de totopos de milho + cheddar cremoso + sour cream + salsa picante.","price":30.0,"photo":null,"available":true,"badge":"CREMOSO & SUAVE","spec":"50g de totopos","addons":[]},{"id":"n3","cat":"nachos","name":"Nachos","desc":"","price":12.0,"photo":null,"available":true,"badge":"Só a crocância","spec":"50g","addons":[]},{"id":"n4","cat":"nachos","name":"Nachos","desc":"","price":18.0,"photo":null,"available":true,"badge":"Melhor custo-benefício","spec":"100g","addons":[]},{"id":"e1","cat":"salsas-extras","name":"Guacamole Tradicional","desc":"","price":12.0,"photo":null,"available":true,"badge":"","spec":"100g","addons":[]},{"id":"e2","cat":"salsas-extras","name":"Molho Chilli de Carne","desc":"","price":12.0,"photo":null,"available":true,"badge":"","spec":"100g","addons":[]},{"id":"e3","cat":"salsas-extras","name":"Sour Cream Artesanal","desc":"","price":12.0,"photo":null,"available":true,"badge":"","spec":"100g","addons":[]},{"id":"e4","cat":"salsas-extras","name":"Cheddar Cremoso","desc":"","price":12.0,"photo":null,"available":true,"badge":"","spec":"100g","addons":[]},{"id":"e5","cat":"salsas-extras","name":"Salsa Picante Mexicana","desc":"","price":12.0,"photo":null,"available":true,"badge":"","spec":"100g","addons":[]},{"id":"bd1","cat":"bebidas","name":"Coca-Cola Original","desc":"O clássico geladinho para acompanhar seu pedido.","price":7.0,"photo":null,"available":false,"badge":"","spec":"Lata 350ml","addons":[]},{"id":"bd2","cat":"bebidas","name":"Coca-Cola Sem Açúcar","desc":"Todo o sabor tradicional, zero açúcar e bem refrescante.","price":7.0,"photo":null,"available":false,"badge":"","spec":"Lata 350ml","addons":[]},{"id":"bd3","cat":"bebidas","name":"Água Mineral com Gás","desc":"Leve, gaseificada na medida e bem gelada.","price":5.0,"photo":null,"available":false,"badge":"","spec":"Garrafa 500ml","addons":[]},{"id":"bd4","cat":"bebidas","name":"Água Mineral sem Gás","desc":"A pureza ideal para hidratar e refrescar o paladar.","price":4.5,"photo":null,"available":false,"badge":"","spec":"Garrafa 500ml","addons":[]}]}</script>
@@ -267,33 +292,48 @@ function toast(msg, isError){
 }
 
 /* ===== Navegação / seções do cardápio (cliente) — scroll contínuo, estilo delivery ===== */
+/* ===== Busca (nome ou descrição, sem acento, todas as palavras) ===== */
+let searchQ = "";
+const normQ = t => String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+function visibleMenu(){
+  const words = normQ(searchQ).split(/\s+/).filter(Boolean);
+  if(!words.length) return MENU;
+  return MENU.filter(p=>{ const hay = normQ(p.name+" "+p.desc); return words.every(w=>hay.includes(w)); });
+}
+function onSearch(v){ searchQ = v; renderNav(); renderGrid(); }
 function navHTML(){
-  return CATEGORIES.filter(c=>MENU.some(p=>p.cat===c.id)).map(c=>`<button class="catbtn ${c.id===activeCat?'active':''} whitespace-nowrap rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold" onclick="scrollToCat('${c.id}')">${esc(c.name)}</button>`).join("");
+  const list = visibleMenu();
+  return CATEGORIES.filter(c=>list.some(p=>p.cat===c.id)).map(c=>`<button class="catbtn ${c.id===activeCat?'active':''} whitespace-nowrap rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold" onclick="scrollToCat('${c.id}')">${esc(c.name)}</button>`).join("");
 }
 function productCardHTML(p){
+  const on = p.available;
   return `
-    <div class="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 flex flex-col ${p.available?'':'opacity-60'}">
-      ${p.photo?`<img src="${esc(p.photo)}" alt="${esc(p.name)}" loading="lazy" decoding="async" class="w-full object-cover rounded-xl mb-3" style="aspect-ratio:4/3" onerror="this.style.display='none'">`:''}
-      ${!p.available?'<span class="self-start mb-1 text-[10px] font-bold px-2 py-1 rounded-full" style="background:var(--text);color:var(--surface)">ESGOTADO</span>':''}
-      ${p.badge?`<span class="eyebrow mb-1" style="color:var(--marigold)">${esc(p.badge)}</span>`:''}
-      <h3 class="fd font-bold text-base">${esc(p.name)}</h3>
-      ${p.spec?`<div class="mono text-[11px] mt-0.5" style="color:var(--muted)">${esc(p.spec)}</div>`:''}
-      ${p.desc?`<p class="text-sm text-[var(--muted)] mt-1 flex-1">${esc(p.desc)}</p>`:'<div class="flex-1"></div>'}
-      <div class="flex items-center justify-between mt-3">
-        <span class="font-bold" style="color:var(--chili)">${brl(p.price)}</span>
-        <button ${p.available?`onclick="openProduct('${p.id}')"`:'disabled'} class="rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-50" style="background:${p.available?'var(--avocado)':'#666'};color:${p.available?'var(--bg)':'#fff'}">Adicionar</button>
+    <div class="pcard ${on?'':'off'}" ${on?`onclick="openProduct('${p.id}')"`:''}>
+      <div class="pbody">
+        ${!on?'<span class="self-start mb-1 text-[10px] font-bold px-2 py-1 rounded-full" style="background:var(--text);color:var(--surface)">ESGOTADO</span>':''}
+        ${p.badge?`<span class="eyebrow mb-1" style="color:var(--marigold)">${esc(p.badge)}</span>`:''}
+        <h3 class="fd font-bold text-base leading-snug">${esc(p.name)}</h3>
+        ${p.spec?`<div class="mono text-[11px] mt-0.5" style="color:var(--muted)">${esc(p.spec)}</div>`:''}
+        ${p.desc?`<p class="pdesc text-sm text-[var(--muted)] mt-1">${esc(p.desc)}</p>`:''}
+        <div class="flex items-center justify-between gap-2 mt-auto pt-3">
+          <span class="font-bold" style="color:var(--chili)">${brl(p.price)}</span>
+          <button type="button" class="padd" ${on?`onclick="event.stopPropagation();quickAdd('${p.id}')"`:'disabled'} aria-label="Adicionar ${esc(p.name)} ao carrinho">+</button>
+        </div>
       </div>
+      ${p.photo?`<div class="pphoto"><img src="${esc(p.photo)}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'"></div>`:''}
     </div>`;
 }
 function gridHTML(){
-  return CATEGORIES.filter(c=>MENU.some(p=>p.cat===c.id)).map(c=>{
-    const items = MENU.filter(p=>p.cat===c.id);
+  const list = visibleMenu();
+  const html = CATEGORIES.filter(c=>list.some(p=>p.cat===c.id)).map(c=>{
+    const items = list.filter(p=>p.cat===c.id);
     return `<section id="catsec-${c.id}" data-cat="${c.id}" class="pt-8 first:pt-0" style="scroll-margin-top:150px">
       <h3 class="fd font-extrabold text-xl sm:text-2xl" style="color:${c.color}">${esc(c.name)}</h3>
       ${c.desc?`<p class="text-sm mt-1 mb-4" style="color:var(--muted)">${esc(c.desc)}</p>`:'<div class="mb-4"></div>'}
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${items.map(productCardHTML).join("")}</div>
+      <div class="pgrid">${items.map(productCardHTML).join("")}</div>
     </section>`;
   }).join("");
+  return html || `<div class="text-center py-16 text-sm" style="color:var(--muted)">Nenhum produto encontrado para "${esc(searchQ.trim())}".</div>`;
 }
 function renderNav(){ document.getElementById("catNav").innerHTML = navHTML(); }
 function renderGrid(){ document.getElementById("productGrid").innerHTML = gridHTML(); setupScrollSpy(); }
@@ -360,21 +400,32 @@ function updateModalTotal(){
   let unit=p.price+addons.reduce((s,a,i)=>s+(modalState.addons[i]?a.p:0),0);
   document.getElementById("modalTotal").textContent=brl(unit*modalState.qty);
 }
+/* Adicionar NUNCA abre o carrinho: só atualiza a barra inferior e mostra um aviso discreto. */
+function pushCart(p, qty, addons, note){
+  const unit=p.price+addons.reduce((s,a)=>s+a.p,0), key=a=>a.map(x=>x.n).join("|");
+  const same=cart.find(i=>i.pid===p.id && key(i.addons)===key(addons) && (i.note||"")===(note||""));
+  if(same) same.qty+=qty; else cart.push({uid:Date.now()+Math.random(), pid:p.id, photo:p.photo||null, name:p.name, unit, qty, addons, note});
+  updateCartBadge(true); toast(p.name+" adicionado ao carrinho");
+}
+function quickAdd(id){
+  const p=MENU.find(x=>x.id===id); if(!p||!p.available) return;
+  if(productAddons(p).length){ openProduct(id); return; }   // com adicionais: escolher antes
+  pushCart(p,1,[],"");
+}
 function addToCart(){
   const p=modalState.product, addons=productAddons(p).filter((a,i)=>modalState.addons[i]);
-  const unit=p.price+addons.reduce((s,a)=>s+a.p,0);
-  cart.push({uid:Date.now()+Math.random(), name:p.name, unit, qty:modalState.qty, addons, note:modalState.note});
-  closeModal(); updateCartBadge(); openCart();
+  pushCart(p, modalState.qty, addons, modalState.note); closeModal();
 }
 
 /* ===== Carrinho ===== */
 function cartTotal(){ return cart.reduce((s,i)=>s+i.unit*i.qty,0); }
 function cartCount(){ return cart.reduce((s,i)=>s+i.qty,0); }
-function updateCartBadge(){
+function updateCartBadge(bump){
   const n=cartCount(); const badge=document.getElementById("cartBadge"); const bar=document.getElementById("floatBar");
   if(n>0){ badge.textContent=n; badge.classList.remove("hidden"); bar.classList.remove("hidden");
     document.getElementById("floatCount").textContent=n+(n===1?" item":" itens");
     document.getElementById("floatTotal").textContent=brl(cartTotal());
+    if(bump===true){ bar.classList.remove("bump"); void bar.offsetWidth; bar.classList.add("bump"); }
   } else { badge.classList.add("hidden"); bar.classList.add("hidden"); }
 }
 function openCart(){ drawerView="cart"; renderDrawer(); document.getElementById("cartBg").classList.remove("hidden"); setTimeout(()=>document.getElementById("cartDrawer").classList.remove("translate-x-full"),10); }
@@ -390,8 +441,10 @@ function renderCartView(){
   if(cart.length===0){ body.innerHTML=`<div class="text-center text-[var(--muted)] py-16">Seu carrinho está vazio.</div>
     <button onclick="closeCart()" class="w-full rounded-full py-3 font-bold border" style="border-color:var(--border)">Adicionar mais itens</button>`; return; }
   body.innerHTML = `<div class="space-y-3">
-    ${cart.map(it=>`<div class="border border-[var(--border)] rounded-xl p-3">
-      <div class="flex justify-between font-semibold text-sm"><span>${esc(it.name)}</span><span>${brl(it.unit*it.qty)}</span></div>
+    ${cart.map(it=>`<div class="border border-[var(--border)] rounded-xl p-3 flex gap-3">
+      ${it.photo?`<img src="${esc(it.photo)}" alt="" class="w-14 h-14 object-cover rounded-lg shrink-0" onerror="this.style.display='none'">`:''}
+      <div class="flex-1 min-w-0">
+      <div class="flex justify-between gap-2 font-semibold text-sm"><span>${esc(it.name)}</span><span>${brl(it.unit*it.qty)}</span></div>
       ${it.addons.length?`<div class="text-xs text-[var(--muted)] mt-1">+ ${it.addons.map(a=>esc(a.n)).join(", ")}</div>`:""}
       ${it.note?`<div class="text-xs text-[var(--muted)] mt-1 italic">Obs: ${esc(it.note)}</div>`:""}
       <div class="flex items-center justify-between mt-2">
@@ -401,11 +454,12 @@ function renderCartView(){
           <button onclick="qtyChange(${it.uid},1)" class="w-5 font-bold">+</button>
         </div>
         <button onclick="removeItem(${it.uid})" class="text-xs font-semibold" style="color:var(--chili)">Remover</button>
-      </div></div>`).join("")}
+      </div></div></div>`).join("")}
     </div>
     <button onclick="closeCart()" class="w-full mt-4 rounded-full py-2.5 font-semibold border" style="border-color:var(--border)">Adicionar mais itens</button>
-    <div class="mt-3 pt-4 border-t border-[var(--border)] flex justify-between font-bold text-lg"><span>Total</span><span>${brl(cartTotal())}</span></div>
-    <button onclick="goCheckout()" class="w-full mt-4 rounded-full py-3 font-bold text-white" style="background:var(--chili)">Finalizar pedido</button>`;
+    <div class="mt-3 pt-4 border-t border-[var(--border)] flex justify-between text-sm" style="color:var(--muted)"><span>Subtotal (${cartCount()} ${cartCount()===1?"item":"itens"})</span><span>${brl(cartTotal())}</span></div>
+    <div class="mt-2 flex justify-between font-bold text-lg"><span>Total</span><span>${brl(cartTotal())}</span></div>
+    <button onclick="goCheckout()" class="w-full mt-4 rounded-full py-3 font-bold text-white" style="background:var(--chili)">Continuar com o pedido</button>`;
 }
 function goCheckout(){ drawerView="checkout"; renderDrawer(); }
 function backToCart(){ drawerView="cart"; renderDrawer(); }
