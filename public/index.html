@@ -59,6 +59,12 @@
   #floatBar.bump{animation:bump .3s ease}
   @media (min-width:640px){#floatBar{left:50%;right:auto;transform:translateX(-50%);width:min(560px,calc(100% - 2rem))}}
   @media (prefers-reduced-motion:reduce){.pcard,.padd{transition:none}#floatBar.bump{animation:none}}
+  /* ===== Espaço do banner (topo): imagem e/ou texto editáveis no painel ===== */
+  .herowrap.has-banner{display:grid;gap:1.5rem}
+  @media (min-width:768px){.herowrap.has-banner{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:2rem}}
+  .herobanner img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+  @media (min-width:768px){.herobanner img{aspect-ratio:4/3}}
+  .herobanner-txt{position:absolute;left:0;right:0;bottom:0;padding:2.5rem 1.1rem 1rem;background:linear-gradient(to top,rgba(21,17,13,.88),transparent);color:#f3ead4}
   .adtab{font-family:'Space Mono',monospace;font-size:11px}
   /* o site só aparece depois de carregar o cardápio salvo (evita piscar preços antigos) */
   #app{opacity:0;transition:opacity .25s ease}
@@ -88,6 +94,7 @@
 </header>
 
 <section class="max-w-7xl mx-auto px-4 pt-8 pb-4">
+  <div id="heroWrap" class="herowrap">
   <div class="max-w-2xl">
     <div id="heroEyebrow" class="eyebrow mb-3"></div>
     <h1 id="heroTitle" class="fd font-extrabold text-4xl sm:text-5xl leading-[1.1]"></h1>
@@ -100,6 +107,8 @@
       <a id="heroWhatsapp" href="#" target="_blank" class="rounded-full px-5 py-3 font-semibold text-sm flex items-center gap-2" style="background:var(--chili);color:#fff"><span id="heroWhatsappLabel"></span></a>
       <a href="#cardapio" id="heroMenuBtn" class="rounded-full px-5 py-3 font-semibold text-sm border" style="border-color:var(--border)"></a>
     </div>
+  </div>
+  <div id="heroBanner" hidden></div>
   </div>
 </section>
 
@@ -267,7 +276,18 @@ function renderContent(){
   document.getElementById("footerTagline").textContent = c.footerTagline;
   document.getElementById("footerInfo").textContent = c.footerInfo;
   renderAnnouncement();
+  renderBanner();
   renderCarousel();
+}
+function renderBanner(){
+  const c = SITE.content, el = document.getElementById("heroBanner"), wrap = document.getElementById("heroWrap");
+  const img = (c.bannerImage||"").trim(), t = (c.bannerTitle||"").trim(), x = (c.bannerText||"").trim();
+  if(!img && !t && !x){ el.hidden = true; el.innerHTML = ""; wrap.classList.remove("has-banner"); return; }
+  const txt = (t||x) ? `${t?`<div class="fd font-extrabold text-xl sm:text-2xl leading-tight">${rich(t)}</div>`:""}${x?`<p class="text-sm sm:text-base mt-1" style="${img?"":"color:var(--muted)"}">${esc(x).replace(/\n/g,"<br>")}</p>`:""}` : "";
+  el.innerHTML = img
+    ? `<div class="herobanner relative overflow-hidden rounded-2xl border" style="border-color:var(--border);background:var(--surface)"><img src="${esc(img)}" alt="${esc(t||c.brandName)}" decoding="async" onerror="this.style.display='none'">${txt?`<div class="herobanner-txt">${txt}</div>`:""}</div>`
+    : `<div class="rounded-2xl border p-6 sm:p-8" style="border-color:var(--border);background:var(--surface)">${txt}</div>`;
+  el.hidden = false; wrap.classList.add("has-banner");
 }
 function renderAnnouncement(){
   const el = document.getElementById("announcementBar");
@@ -374,6 +394,7 @@ function renderModal(){
         <span class="text-[var(--muted)]">${a.p>0?'+ '+brl(a.p):'grátis'}</span></label>`).join("")}
     </div>` : "";
   document.getElementById("modalContent").innerHTML = `
+    ${p.photo?`<img src="${esc(p.photo)}" alt="${esc(p.name)}" decoding="async" onerror="this.style.display='none'" style="display:block;width:calc(100% + 2.5rem);max-width:none;margin:-1.25rem -1.25rem 1rem;aspect-ratio:16/10;object-fit:cover;border-radius:1rem 1rem 0 0">`:''}
     ${p.badge?`<span class="eyebrow" style="color:var(--marigold)">${esc(p.badge)}</span>`:''}
     <div class="flex justify-between items-start">
       <h3 class="fd font-extrabold text-xl">${esc(p.name)}</h3>
@@ -443,7 +464,7 @@ function renderCartView(){
     <button onclick="closeCart()" class="w-full rounded-full py-3 font-bold border" style="border-color:var(--border)">Adicionar mais itens</button>`; return; }
   body.innerHTML = `<div class="space-y-3">
     ${cart.map(it=>`<div class="border border-[var(--border)] rounded-xl p-3 flex gap-3">
-      ${it.photo?`<img src="${esc(it.photo)}" alt="" class="w-14 h-14 object-cover rounded-lg shrink-0" onerror="this.style.display='none'">`:''}
+      ${it.photo?`<img src="${esc(it.photo)}" alt="" class="w-[72px] h-[72px] object-cover rounded-lg shrink-0" onerror="this.style.display='none'">`:''}
       <div class="flex-1 min-w-0">
       <div class="flex justify-between gap-2 font-semibold text-sm"><span>${esc(it.name)}</span><span>${brl(it.unit*it.qty)}</span></div>
       ${it.addons.length?`<div class="text-xs text-[var(--muted)] mt-1">+ ${it.addons.map(a=>esc(a.n)).join(", ")}</div>`:""}
@@ -647,7 +668,7 @@ function renderAdminBody(){
   if(adminTab==="cardapio") body.innerHTML = tabCardapioHTML();
   else if(adminTab==="produtos"){ body.innerHTML = tabProdutosHTML(); renderPhotoPreview(); renderAddonsList(); }
   else if(adminTab==="categorias") body.innerHTML = tabCategoriasHTML();
-  else if(adminTab==="conteudo"){ body.innerHTML = tabConteudoHTML(); renderFeatEditList(); }
+  else if(adminTab==="conteudo"){ body.innerHTML = tabConteudoHTML(); renderFeatEditList(); renderBannerAdmin(); }
   else if(adminTab==="carrossel"){ body.innerHTML = tabCarrosselHTML(); renderCarAdminList(); }
   else if(adminTab==="config") body.innerHTML = tabConfigHTML();
 }
@@ -888,6 +909,14 @@ function tabConteudoHTML(){
     + fld("cBul2","Linha de destaques 2", c.heroBulletsLine2)
     + fld("cCtaWa","Texto do botão WhatsApp (topo)", c.ctaWhatsappLabel)
     + fld("cCtaMenu","Texto do botão Ver cardápio", c.ctaMenuLabel);
+  html += `<div class="eyebrow mb-2 mt-4">ESPAÇO DO BANNER (lado direito do topo)</div>
+    <div class="text-xs mb-2" style="color:var(--muted)">Coloque uma imagem, um texto ou os dois. Se deixar tudo vazio, o espaço não aparece no site.</div>
+    <div id="bannerAdminBox" class="mb-2"></div>
+    <label class="inline-block rounded-full border px-4 py-2 text-sm font-semibold cursor-pointer" style="border-color:var(--border)">Enviar imagem do banner
+      <input type="file" accept="image/*" class="hidden" onchange="handleBannerFile(this)"></label>
+    <div id="bannerStatus" class="text-xs mt-1 mb-3 min-h-[1rem]" style="color:var(--muted)" role="status"></div>`
+    + fld("cBannerTitle","Título sobre a imagem (opcional)", c.bannerTitle)
+    + fld("cBannerText","Texto do banner (opcional)", c.bannerText, true);
   html += `<div class="eyebrow mb-2 mt-4">FAIXA E SEÇÃO DE CARDÁPIO</div>`
     + fld("cMarquee","Texto da faixa (separe trechos com ✦)", c.marqueeText)
     + fld("cMenuEyebrow","Selo da seção de cardápio", c.menuEyebrow)
@@ -907,6 +936,25 @@ function tabConteudoHTML(){
   html += `<button onclick="saveContent()" class="w-full mt-4 rounded-full py-3 font-bold" style="background:var(--avocado);color:var(--bg)">Salvar conteúdo do site</button>`;
   return html;
 }
+function renderBannerAdmin(){
+  const el = document.getElementById("bannerAdminBox"); if(!el) return;
+  const u = (SITE.content.bannerImage||"").trim();
+  el.innerHTML = u ? `<div class="flex items-center gap-3"><img src="${esc(u)}" alt="" class="w-28 h-20 object-cover rounded-lg border border-[var(--border)]"><button type="button" onclick="removeBannerImage()" class="text-xs font-semibold" style="color:var(--chili)">Remover imagem</button></div>`
+                    : `<div class="text-xs" style="color:var(--muted)">Nenhuma imagem enviada ainda.</div>`;
+}
+function bannerStatus(msg, isErr){ const el=document.getElementById("bannerStatus"); if(el){ el.textContent=msg; el.style.color=isErr?"#ff8a70":"var(--muted)"; } }
+let bannerBusy = false;
+async function handleBannerFile(input){
+  const file = input.files && input.files[0]; input.value = "";
+  if(!file || bannerBusy) return;
+  bannerBusy = true; bannerStatus("Enviando imagem...");
+  try{
+    SITE.content.bannerImage = await uploadImageFile(file, 1600, 0.82);
+    renderBannerAdmin(); renderBanner(); bannerStatus("Imagem enviada. Clique em Salvar conteúdo do site.");
+  }catch(e){ bannerStatus(uploadErrorText(e), true); }
+  bannerBusy = false;
+}
+function removeBannerImage(){ SITE.content.bannerImage = ""; renderBannerAdmin(); renderBanner(); bannerStatus("Imagem removida. Clique em Salvar conteúdo do site."); }
 function renderFeatEditList(){
   const el = document.getElementById("featEditList"); if(!el) return;
   const feats = SITE.content.features || [];
@@ -932,6 +980,8 @@ function saveContent(){
   c.heroBulletsLine2=fv("cBul2");
   c.ctaWhatsappLabel=fv("cCtaWa");
   c.ctaMenuLabel=fv("cCtaMenu");
+  c.bannerTitle=fv("cBannerTitle");
+  c.bannerText=fv("cBannerText");
   c.marqueeText=fv("cMarquee");
   c.menuEyebrow=fv("cMenuEyebrow");
   c.menuTitle=fv("cMenuTitle");
